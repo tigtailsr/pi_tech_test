@@ -28,7 +28,7 @@ public final class ApprovalThresholds {
     }
     List<Threshold> sorted = new ArrayList<>(thresholds);
     sorted.sort(Comparator.comparingLong(Threshold::minAmount));
-    if (sorted.get(0).minAmount() > 0) {
+    if (sorted.getFirst().minAmount() > 0) {
       throw new IllegalArgumentException("thresholds must cover every amount from 0 upward");
     }
     for (Threshold threshold : sorted) {
@@ -41,7 +41,7 @@ public final class ApprovalThresholds {
 
   /** How many approvals a claim of this amount needs. */
   public int requiredApprovals(long amount) {
-    int required = ascending.get(0).approvalsRequired();
+    int required = ascending.getFirst().approvalsRequired();
     for (Threshold threshold : ascending) {
       if (amount < threshold.minAmount()) {
         break;
@@ -69,6 +69,7 @@ public final class ApprovalThresholds {
   }
 
   private static final class Fixture {
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     List<ThresholdFixture> thresholds;
   }
 

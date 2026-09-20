@@ -45,19 +45,19 @@ public final class ClaimApi {
 
     // /claims
     if (path.size() == 1) {
-      requireMethod(exchange, "POST", method);
+      requireMethod("POST", method);
       submit(exchange);
       return;
     }
     // /claims/{id}
     if (path.size() == 2) {
-      requireMethod(exchange, "GET", method);
+      requireMethod("GET", method);
       Http.writeJson(exchange, 200, toResponse(claims.get(path.get(1))));
       return;
     }
     // /claims/{id}/approve
     if (path.size() == 3 && path.get(2).equals("approve")) {
-      requireMethod(exchange, "POST", method);
+      requireMethod("POST", method);
       approve(exchange, path.get(1));
       return;
     }
@@ -82,7 +82,7 @@ public final class ClaimApi {
   }
 
   private void routeMonthlyReport(HttpExchange exchange) throws IOException {
-    requireMethod(exchange, "GET", exchange.getRequestMethod());
+    requireMethod("GET", exchange.getRequestMethod());
     String month = queryParam(exchange.getRequestURI(), "month");
     if (month == null) {
       throw new BadRequestException("month query parameter is required, formatted YYYY-MM");
@@ -129,7 +129,7 @@ public final class ClaimApi {
     };
   }
 
-  private static void requireMethod(HttpExchange exchange, String expected, String actual) {
+  private static void requireMethod(String expected, String actual) {
     if (!expected.equals(actual)) {
       throw new MethodNotAllowedException(actual + " is not allowed here, expected " + expected);
     }

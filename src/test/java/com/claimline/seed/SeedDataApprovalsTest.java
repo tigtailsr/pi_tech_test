@@ -29,8 +29,10 @@ class SeedDataApprovalsTest {
     Path auditFilePath = tempDir.resolve("audit-log.txt");
     Files.writeString(
         auditFilePath,
-        "2026-04-03T09:14:22Z\tsubmitted\tclm-4a1c9e02\t42\ttravel\t\n"
-            + "2026-04-03T11:02:47Z\tapproved\tclm-4a1c9e02\t42\ttravel\talice\n",
+            """
+                    2026-04-03T09:14:22Z\tsubmitted\tclm-4a1c9e02\t42\ttravel\t
+                    2026-04-03T11:02:47Z\tapproved\tclm-4a1c9e02\t42\ttravel\talice
+                    """,
         StandardCharsets.UTF_8);
     AuditFile auditFile = new TextFileAuditFile(auditFilePath);
     ClaimStore store = new InMemoryClaimStore();
@@ -39,7 +41,7 @@ class SeedDataApprovalsTest {
 
     ApprovalState state = store.approvalsFor("clm-4a1c9e02");
     assertEquals(1, state.approvals().size());
-    assertEquals(new Approval("alice", "2026-04-03T11:02:47Z"), state.approvals().get(0));
+    assertEquals(new Approval("alice", "2026-04-03T11:02:47Z"), state.approvals().getFirst());
     assertEquals(1, state.approvalsRequired());
   }
 
@@ -54,6 +56,6 @@ class SeedDataApprovalsTest {
 
     ApprovalState state = store.approvalsFor("clm-4a1c9e02");
     assertEquals(1, state.approvals().size());
-    assertEquals("unknown", state.approvals().get(0).timestamp());
+    assertEquals("unknown", state.approvals().getFirst().timestamp());
   }
 }

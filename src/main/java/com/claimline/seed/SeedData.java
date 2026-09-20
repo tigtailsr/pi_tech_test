@@ -100,7 +100,6 @@ public final class SeedData {
 
   private static final class SeedApprover {
     String approverId;
-    String name;
     long limit;
   }
 

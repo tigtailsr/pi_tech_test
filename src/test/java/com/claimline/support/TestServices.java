@@ -6,7 +6,6 @@ import com.claimline.policy.ApprovalPolicy;
 import com.claimline.policy.ApprovalThresholds;
 import com.claimline.policy.ApprovalThresholds.Threshold;
 import com.claimline.service.ClaimService;
-import com.claimline.service.Clock;
 import com.claimline.service.ReportService;
 import com.claimline.service.SubmitClaimRequest;
 import com.claimline.store.InMemoryClaimStore;

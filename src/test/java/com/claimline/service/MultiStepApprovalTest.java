@@ -126,6 +126,6 @@ class MultiStepApprovalTest {
         TestServices.reportService(auditFile).monthly(new ReportMonth(TestServices.NOW.substring(0, 7)));
 
     assertEquals(Map.of("equipment", 4_000L), report.totalsByCategory());
-    assertTrue(report.total() == 4_000L, "each approved claim must count once, for its own amount");
+      assertEquals(4_000L, report.total(), "each approved claim must count once, for its own amount");
   }
 }
