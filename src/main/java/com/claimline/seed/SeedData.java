@@ -1,6 +1,10 @@
 package com.claimline.seed;
 
+import com.claimline.audit.AuditEntry;
+import com.claimline.audit.AuditFile;
 import com.claimline.policy.ApprovalPolicy;
+import com.claimline.policy.ApprovalThresholds;
+import com.claimline.store.Approval;
 import com.claimline.store.Claim;
 import com.claimline.store.ClaimStore;
 import com.google.gson.Gson;
@@ -39,7 +43,14 @@ public final class SeedData {
     return new ApprovalPolicy(limits);
   }
 
-  public void seedInto(ClaimStore store) {
+  /**
+   * Seeds claims into the store, along with how many approvals each needs and, for claims that
+   * are already approved, the one approval on record for it. That approval's timestamp is looked
+   * up from the audit file, which already holds it from when the claim was really approved;
+   * {@code "unknown"} is used only if no matching entry can be found there.
+   */
+  public void seedInto(ClaimStore store, ApprovalThresholds thresholds, AuditFile auditFile) {
+    Map<String, String> approvedTimestampByClaimId = approvedTimestamps(auditFile);
     for (SeedClaim claim : claims) {
       store.save(
           new Claim(
@@ -49,7 +60,23 @@ public final class SeedData {
               claim.category,
               claim.status,
               claim.approvedBy));
+      store.initApprovals(claim.id, thresholds.requiredApprovals(claim.amount));
+      if (Claim.APPROVED.equals(claim.status) && claim.approvedBy != null
+          && !claim.approvedBy.isBlank()) {
+        String timestamp = approvedTimestampByClaimId.getOrDefault(claim.id, "unknown");
+        store.addApproval(claim.id, new Approval(claim.approvedBy, timestamp));
+      }
     }
+  }
+
+  private static Map<String, String> approvedTimestamps(AuditFile auditFile) {
+    Map<String, String> timestampByClaimId = new HashMap<>();
+    for (AuditEntry entry : auditFile.readAll()) {
+      if (AuditEntry.APPROVED.equals(entry.action())) {
+        timestampByClaimId.put(entry.claimId(), entry.timestamp());
+      }
+    }
+    return timestampByClaimId;
   }
 
   private static <T> T read(String resource, Class<T> type) {

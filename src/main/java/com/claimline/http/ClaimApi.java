@@ -1,5 +1,6 @@
 package com.claimline.http;
 
+import com.claimline.http.Dtos.ApprovalResponse;
 import com.claimline.http.Dtos.ApproveRequest;
 import com.claimline.http.Dtos.ClaimResponse;
 import com.claimline.http.Dtos.ReportResponse;
@@ -11,6 +12,7 @@ import com.claimline.service.MonthlyReport;
 import com.claimline.service.ReportMonth;
 import com.claimline.service.ReportService;
 import com.claimline.service.SubmitClaimRequest;
+import com.claimline.store.ApprovalState;
 import com.claimline.store.Claim;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -92,14 +94,21 @@ public final class ClaimApi {
         new ReportResponse(report.month(), report.totalsByCategory(), report.total()));
   }
 
-  private static ClaimResponse toResponse(Claim claim) {
+  private ClaimResponse toResponse(Claim claim) {
+    ApprovalState approvalState = claims.approvals(claim.id());
+    List<ApprovalResponse> approvals =
+        approvalState.approvals().stream()
+            .map(a -> new ApprovalResponse(a.approverId(), a.timestamp()))
+            .toList();
     return new ClaimResponse(
         claim.id(),
         claim.submitterId(),
         claim.amount(),
         claim.category(),
         claim.status(),
-        claim.approvedBy());
+        claim.approvedBy(),
+        approvals,
+        approvalState.approvalsRequired());
   }
 
   private HttpHandler handle(ThrowingHandler handler) {

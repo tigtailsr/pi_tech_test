@@ -3,12 +3,15 @@ package com.claimline.support;
 import com.claimline.audit.AuditFile;
 import com.claimline.audit.TextFileAuditFile;
 import com.claimline.policy.ApprovalPolicy;
+import com.claimline.policy.ApprovalThresholds;
+import com.claimline.policy.ApprovalThresholds.Threshold;
 import com.claimline.service.ClaimService;
 import com.claimline.service.Clock;
 import com.claimline.service.ReportService;
 import com.claimline.service.SubmitClaimRequest;
 import com.claimline.store.InMemoryClaimStore;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 /** Builds wired services for tests. Amounts are whole dollars. */
@@ -24,7 +27,20 @@ public final class TestServices {
 
   public static ApprovalPolicy policy() {
     return new ApprovalPolicy(
-        Map.of("alice", 500L, "bharat", 5_000L, "chen", 10_000L, "dana", 5_000L));
+        Map.of(
+            "alice", 500L,
+            "bharat", 5_000L,
+            "chen", 10_000L,
+            "dana", 5_000L,
+            "eshe", 20_000L,
+            "farouk", 20_000L,
+            "gita", 20_000L));
+  }
+
+  /** The same step-up table finance ships in {@code config/approval-thresholds.json}. */
+  public static ApprovalThresholds thresholds() {
+    return new ApprovalThresholds(
+        List.of(new Threshold(0, 1), new Threshold(1_000, 2), new Threshold(10_000, 3)));
   }
 
   public static AuditFile auditFile(Path file) {
@@ -32,7 +48,12 @@ public final class TestServices {
   }
 
   public static ClaimService claimService(Path auditFile) {
-    return new ClaimService(new InMemoryClaimStore(), policy(), auditFile(auditFile), () -> NOW);
+    return claimService(auditFile, thresholds());
+  }
+
+  public static ClaimService claimService(Path auditFile, ApprovalThresholds thresholds) {
+    return new ClaimService(
+        new InMemoryClaimStore(), policy(), thresholds, auditFile(auditFile), () -> NOW);
   }
 
   public static ReportService reportService(Path auditFile) {

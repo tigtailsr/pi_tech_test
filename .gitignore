@@ -27,3 +27,4 @@ replay_pid*
 /dependency-reduced-pom.xml
 /.claude/
 /.playwright-mcp/
+.idea
