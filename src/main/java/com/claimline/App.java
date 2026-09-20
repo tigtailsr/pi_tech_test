@@ -5,6 +5,7 @@ import com.claimline.audit.TextFileAuditFile;
 import com.claimline.config.Config;
 import com.claimline.http.ClaimApi;
 import com.claimline.policy.ApprovalPolicy;
+import com.claimline.policy.ApprovalThresholds;
 import com.claimline.seed.SeedData;
 import com.claimline.service.ClaimService;
 import com.claimline.service.Clock;
@@ -23,11 +24,13 @@ public final class App {
 
     SeedData seed = SeedData.load();
     ApprovalPolicy approvalPolicy = seed.toApprovalPolicy();
+    ApprovalThresholds approvalThresholds = ApprovalThresholds.load(config.approvalThresholdsFile());
     ClaimStore claims = new InMemoryClaimStore();
-    seed.seedInto(claims);
     AuditFile auditFile = new TextFileAuditFile(config.auditFile());
+    seed.seedInto(claims, approvalThresholds, auditFile);
 
-    ClaimService claimService = new ClaimService(claims, approvalPolicy, auditFile, Clock.system());
+    ClaimService claimService =
+        new ClaimService(claims, approvalPolicy, approvalThresholds, auditFile, Clock.system());
     ReportService reportService = new ReportService(auditFile);
 
     HttpServer server = HttpServer.create(new InetSocketAddress(config.port()), 0);

@@ -1,0 +1,7 @@
+{
+  "thresholds": [
+    { "minAmount": 0, "approvalsRequired": 1 },
+    { "minAmount": 1000, "approvalsRequired": 2 },
+    { "minAmount": 10000, "approvalsRequired": 3 }
+  ]
+}

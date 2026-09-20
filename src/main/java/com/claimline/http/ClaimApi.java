@@ -1,5 +1,6 @@
 package com.claimline.http;
 
+import com.claimline.http.Dtos.ApprovalResponse;
 import com.claimline.http.Dtos.ApproveRequest;
 import com.claimline.http.Dtos.ClaimResponse;
 import com.claimline.http.Dtos.ReportResponse;
@@ -11,6 +12,7 @@ import com.claimline.service.MonthlyReport;
 import com.claimline.service.ReportMonth;
 import com.claimline.service.ReportService;
 import com.claimline.service.SubmitClaimRequest;
+import com.claimline.store.ApprovalState;
 import com.claimline.store.Claim;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -43,19 +45,19 @@ public final class ClaimApi {
 
     // /claims
     if (path.size() == 1) {
-      requireMethod(exchange, "POST", method);
+      requireMethod("POST", method);
       submit(exchange);
       return;
     }
     // /claims/{id}
     if (path.size() == 2) {
-      requireMethod(exchange, "GET", method);
+      requireMethod("GET", method);
       Http.writeJson(exchange, 200, toResponse(claims.get(path.get(1))));
       return;
     }
     // /claims/{id}/approve
     if (path.size() == 3 && path.get(2).equals("approve")) {
-      requireMethod(exchange, "POST", method);
+      requireMethod("POST", method);
       approve(exchange, path.get(1));
       return;
     }
@@ -80,7 +82,7 @@ public final class ClaimApi {
   }
 
   private void routeMonthlyReport(HttpExchange exchange) throws IOException {
-    requireMethod(exchange, "GET", exchange.getRequestMethod());
+    requireMethod("GET", exchange.getRequestMethod());
     String month = queryParam(exchange.getRequestURI(), "month");
     if (month == null) {
       throw new BadRequestException("month query parameter is required, formatted YYYY-MM");
@@ -92,14 +94,21 @@ public final class ClaimApi {
         new ReportResponse(report.month(), report.totalsByCategory(), report.total()));
   }
 
-  private static ClaimResponse toResponse(Claim claim) {
+  private ClaimResponse toResponse(Claim claim) {
+    ApprovalState approvalState = claims.approvals(claim.id());
+    List<ApprovalResponse> approvals =
+        approvalState.approvals().stream()
+            .map(a -> new ApprovalResponse(a.approverId(), a.timestamp()))
+            .toList();
     return new ClaimResponse(
         claim.id(),
         claim.submitterId(),
         claim.amount(),
         claim.category(),
         claim.status(),
-        claim.approvedBy());
+        claim.approvedBy(),
+        approvals,
+        approvalState.approvalsRequired());
   }
 
   private HttpHandler handle(ThrowingHandler handler) {
@@ -120,7 +129,7 @@ public final class ClaimApi {
     };
   }
 
-  private static void requireMethod(HttpExchange exchange, String expected, String actual) {
+  private static void requireMethod(String expected, String actual) {
     if (!expected.equals(actual)) {
       throw new MethodNotAllowedException(actual + " is not allowed here, expected " + expected);
     }
