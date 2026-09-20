@@ -20,7 +20,7 @@ public final class ApprovalThresholds {
   /** Claims of at least {@code minAmount} need {@code approvalsRequired} approvals. */
   public record Threshold(long minAmount, int approvalsRequired) {}
 
-  private final List<Threshold> ascending;
+  private final List<Threshold> ascendingThresholds;
 
   public ApprovalThresholds(List<Threshold> thresholds) {
     if (thresholds == null || thresholds.isEmpty()) {
@@ -36,13 +36,13 @@ public final class ApprovalThresholds {
         throw new IllegalArgumentException("approvalsRequired must be at least 1");
       }
     }
-    this.ascending = List.copyOf(sorted);
+    this.ascendingThresholds = List.copyOf(sorted);
   }
 
   /** How many approvals a claim of this amount needs. */
   public int requiredApprovals(long amount) {
-    int required = ascending.getFirst().approvalsRequired();
-    for (Threshold threshold : ascending) {
+    int required = ascendingThresholds.getFirst().approvalsRequired();
+    for (Threshold threshold : ascendingThresholds) {
       if (amount < threshold.minAmount()) {
         break;
       }

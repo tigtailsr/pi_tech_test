@@ -61,7 +61,8 @@ public final class SeedData {
               claim.status,
               claim.approvedBy));
       store.initApprovals(claim.id, thresholds.requiredApprovals(claim.amount));
-      if (Claim.APPROVED.equals(claim.status) && claim.approvedBy != null
+      if (Claim.APPROVED.equals(claim.status)
+          && claim.approvedBy != null
           && !claim.approvedBy.isBlank()) {
         String timestamp = approvedTimestampByClaimId.getOrDefault(claim.id, "unknown");
         store.addApproval(claim.id, new Approval(claim.approvedBy, timestamp));
