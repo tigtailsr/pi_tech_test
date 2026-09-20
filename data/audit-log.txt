@@ -2,10 +2,8 @@
 2026-04-03T11:02:47Z	approved	clm-4a1c9e02	42	travel	alice
 2026-04-07T14:31:08Z	submitted	clm-5b7d1f33	1289	equipment	
 2026-04-08T08:45:12Z	approved	clm-5b7d1f33	1289	equipment	bharat
-2026-04-09T10:15:00Z	submitted	clm-3f8a1b2c	10	meals
-2026-04-09T00:00:00Z	approved	clm-9d4e77a1	999999	equipment	
-2026-04-09T14:22:00Z	approved	clm-3f8a1b2c	10	meals
-2026-04-09T00:00:00Z	approved	clm-9d4e77a1	999999	equipment	alice
+2026-04-09T10:15:00Z	submitted	clm-3f8a1b2c	10	meals	
+2026-04-09T14:22:00Z	approved	clm-3f8a1b2c	10	meals	alice
 2026-04-11T16:20:55Z	submitted	clm-6c2e8a41	315	travel	
 2026-04-12T09:03:19Z	approved	clm-6c2e8a41	315	travel	alice
 2026-04-18T10:47:33Z	submitted	clm-7d9f2b58	78	meals	

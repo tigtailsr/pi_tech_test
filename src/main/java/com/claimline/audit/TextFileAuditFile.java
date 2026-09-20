@@ -9,7 +9,14 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
-/** An {@link AuditFile} stored as one entry per line, with fields separated by tabs. */
+/**
+ * An {@link AuditFile} stored as one entry per line, with fields separated by tabs.
+ *
+ * <p>A field may legitimately contain a tab or a newline (a submitter can type anything into
+ * {@code category}), so each field is escaped on write and unescaped on read. Without this, a
+ * crafted field could be mistaken for the file's own delimiters and forge extra, unrelated
+ * entries — which is exactly what corrupted a past month's report.
+ */
 public final class TextFileAuditFile implements AuditFile {
 
   private static final String SEPARATOR = "\t";
@@ -25,17 +32,17 @@ public final class TextFileAuditFile implements AuditFile {
   public void append(AuditEntry entry) {
     // Fields are written in a fixed order.
     String line =
-        entry.timestamp()
+        escape(entry.timestamp())
             + SEPARATOR
-            + entry.action()
+            + escape(entry.action())
             + SEPARATOR
-            + entry.claimId()
+            + escape(entry.claimId())
             + SEPARATOR
             + entry.amount()
             + SEPARATOR
-            + entry.category()
+            + escape(entry.category())
             + SEPARATOR
-            + entry.approverId()
+            + escape(entry.approverId())
             + System.lineSeparator();
     try {
       Files.createDirectories(file.toAbsolutePath().getParent());
@@ -80,6 +87,53 @@ public final class TextFileAuditFile implements AuditFile {
     } catch (NumberFormatException e) {
       return null;
     }
-    return new AuditEntry(fields[0], fields[1], fields[2], amount, fields[4], fields[5]);
+    return new AuditEntry(
+        unescape(fields[0]),
+        unescape(fields[1]),
+        unescape(fields[2]),
+        amount,
+        unescape(fields[4]),
+        unescape(fields[5]));
+  }
+
+  /**
+   * Replaces the characters that would otherwise be mistaken for this file's own delimiters
+   * (a tab, a newline, a carriage return) with a backslash escape, and escapes a literal
+   * backslash itself so the scheme stays reversible.
+   */
+  private static String escape(String field) {
+    return field
+        .replace("\\", "\\\\")
+        .replace("\t", "\\t")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r");
+  }
+
+  /**
+   * Reverses {@link #escape}. A field written before escaping existed contains none of these
+   * escape sequences, so it comes back unchanged.
+   */
+  private static String unescape(String field) {
+    StringBuilder unescaped = new StringBuilder(field.length());
+    for (int i = 0; i < field.length(); i++) {
+      char c = field.charAt(i);
+      if (c == '\\' && i + 1 < field.length()) {
+        char next = field.charAt(i + 1);
+        switch (next) {
+          case 't' -> unescaped.append('\t');
+          case 'n' -> unescaped.append('\n');
+          case 'r' -> unescaped.append('\r');
+          case '\\' -> unescaped.append('\\');
+          default -> {
+            unescaped.append(c);
+            continue;
+          }
+        }
+        i++;
+      } else {
+        unescaped.append(c);
+      }
+    }
+    return unescaped.toString();
   }
 }
